@@ -3,6 +3,7 @@ package com.example.PKI.domain;
 
 import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.domain.enums.KeyUsages;
 import com.example.PKI.domain.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -36,4 +38,6 @@ public class CertificateRequest {
     @Column(name = "type")
     private CertificateType certificateType;
 
+    @ElementCollection
+    private List<KeyUsages> keyUsages;
 }
