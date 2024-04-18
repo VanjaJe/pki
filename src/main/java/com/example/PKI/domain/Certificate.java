@@ -1,6 +1,7 @@
 package com.example.PKI.domain;
 
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.domain.enums.KeyUsages;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,6 +9,7 @@ import lombok.Setter;
 
 import java.security.cert.X509Certificate;
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Getter
@@ -30,13 +32,22 @@ public class Certificate {
     @ManyToOne(cascade = CascadeType.ALL)
     private User subject;
 
-    @Column(name = "is_revoked")
-    private boolean isRevoked;
+    @Column(name = "alias")
+    private String alias;
 
     @Column(name = "serial_number")
     private String serialNumber;
 
     @Column(name = "issuer_serial_number")
     private String issuerSerialNumber;
+
+    @Column(name = "is_revoked")
+    private boolean isRevoked;
+
+    @Column(name = "revoke_reason")
+    private String revokeReason;
+
+    @ElementCollection
+    private List<KeyUsages> keyUsages;
 
 }
