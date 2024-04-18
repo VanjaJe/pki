@@ -2,24 +2,30 @@ package com.example.PKI.controller;
 
 
 import com.example.PKI.domain.Certificate;
+import com.example.PKI.domain.TreeNode;
+import com.example.PKI.domain.User;
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.service.interfaces.ICertificateService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
+
 
 @RestController
 @CrossOrigin(origins = "http://localhost:4200")
 @RequestMapping("/api/certificate")
 public class CertificateController {
+
+    @Autowired
+    private ICertificateService certificateService;
     @GetMapping
-    public ResponseEntity<Collection<Certificate>> getAll () {
-        Collection<Certificate>certificates=new ArrayList<>();
-        return new ResponseEntity<Collection<Certificate>>(certificates,HttpStatus.OK);
+    public ResponseEntity<TreeNode> getAll () {
+        TreeNode certificates=certificateService.getAll();
+        return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
 }
