@@ -39,4 +39,14 @@ public class Certificate {
     @Column(name = "issuer_serial_number")
     private String issuerSerialNumber;
 
+    public Certificate(Long id, CertificateType certificateType, Date dateFrom, Date dateTo, User subject, boolean isRevoked, String serialNumber, String issuerSerialNumber) {
+        this.id = id;
+        this.certificateType = certificateType;
+        this.dateFrom = dateFrom;
+        this.dateTo = dateTo;
+        this.subject = subject;
+        this.isRevoked = isRevoked;
+        this.serialNumber = serialNumber;
+        this.issuerSerialNumber = issuerSerialNumber;
+    }
 }
