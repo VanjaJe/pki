@@ -2,10 +2,7 @@ package com.example.PKI.repository;
 
 import org.springframework.stereotype.Repository;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyFactory;
@@ -46,11 +43,12 @@ public class KeyRepository {
         return null;
     }
 
-    public void deletePrivateKeyFile(String alias) {
+    public void deletePrivateKey(String alias) {
         File privateKeyFile = new File(keysPath + alias + ".key");
         if (privateKeyFile.exists()) {
             privateKeyFile.delete();
         }
     }
+
 
 }
