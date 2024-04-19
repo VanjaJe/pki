@@ -25,15 +25,6 @@ public class Certificate {
     @Column(name = "type")
     private CertificateType certificateType;
 
-    @Column(name = "date_from")
-    private Date dateFrom;
-
-    @Column(name = "date_to")
-    private Date dateTo;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    private User subject;
-
     @Column(name = "alias")
     private String alias;
 

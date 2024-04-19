@@ -5,6 +5,7 @@ import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
 import com.example.PKI.domain.enums.KeyUsages;
 import com.example.PKI.domain.enums.RequestStatus;
+import com.example.PKI.dto.CertificateDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
