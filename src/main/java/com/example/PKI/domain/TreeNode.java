@@ -1,5 +1,6 @@
 package com.example.PKI.domain;
 
+import com.example.PKI.dto.CertificateDTO;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -7,10 +8,10 @@ import java.util.List;
 
 @Getter
 public class TreeNode {
-    private Certificate certificate;
+    private CertificateDTO certificate;
     private List<TreeNode> children;
 
-    public TreeNode(Certificate certificate) {
+    public TreeNode(CertificateDTO certificate) {
         this.certificate = certificate;
         this.children = new ArrayList<>();
     }

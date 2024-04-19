@@ -23,9 +23,7 @@ public class CertificateDTO {
 
     private Date dateTo;
 
-    private User subject;
-
-    private boolean isRevoked;
+    private String email;
 
     private String serialNumber;
 

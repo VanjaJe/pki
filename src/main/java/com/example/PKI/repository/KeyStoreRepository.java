@@ -14,6 +14,9 @@ import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Enumeration;
 
 @Repository
 public class KeyStoreRepository {
@@ -86,4 +89,22 @@ public class KeyStoreRepository {
         }
     }
 
+    public Collection<Certificate> readCertificates() {
+        Collection<Certificate> certificates = new ArrayList<>();
+        try {
+           loadKeyStore();
+
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                if (keyStore.isKeyEntry(alias)) {
+                    Certificate cert = keyStore.getCertificate(alias);
+                    certificates.add(cert);
+                }
+            }
+        } catch (KeyStoreException e) {
+            e.printStackTrace();
+        }
+        return certificates;
+    }
 }

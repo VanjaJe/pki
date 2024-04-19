@@ -3,6 +3,7 @@ package com.example.PKI.domain;
 import com.example.PKI.domain.enums.CertificateType;
 import com.example.PKI.domain.enums.KeyUsages;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,15 +24,6 @@ public class Certificate {
 
     @Column(name = "type")
     private CertificateType certificateType;
-
-    @Column(name = "date_from")
-    private Date dateFrom;
-
-    @Column(name = "date_to")
-    private Date dateTo;
-
-    @ManyToOne(cascade = CascadeType.ALL)
-    private User subject;
 
     @Column(name = "alias")
     private String alias;
