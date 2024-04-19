@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 @Repository
@@ -24,14 +25,29 @@ public class KeyStoreRepository {
     private String passwordPath = "src/main/resources/password.txt";
     private String keyStorePath = "src/main/resources/keystore/keystore.jks";
 
+    private String rootPath = "src/main/resources/root/rootCACert.pem";
+
 
     public void loadKeyStore() {
         try {
             keyStore = KeyStore.getInstance("JKS", "SUN");
-            BufferedInputStream in = new BufferedInputStream(Files.newInputStream(Path.of(passwordPath)));
+            BufferedInputStream in = new BufferedInputStream(Files.newInputStream(Path.of(keyStorePath)));
             keyStore.load(in,readPassword().toCharArray());
         } catch (KeyStoreException | NoSuchAlgorithmException | IOException | NoSuchProviderException |
                  CertificateException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void createKeystore() {
+        try {
+            KeyStore keyStore = KeyStore.getInstance("JKS", "SUN");
+            keyStore.load(null, readPassword().toCharArray());
+            keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)),readPassword().toCharArray());
+
+        } catch (KeyStoreException | NoSuchAlgorithmException | CertificateException | IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchProviderException e) {
             throw new RuntimeException(e);
         }
     }
@@ -55,7 +71,7 @@ public class KeyStoreRepository {
     public Certificate readCertificate(String alias) {
         try {
             loadKeyStore();
-            if(keyStore.isKeyEntry(alias)) {
+            if(keyStore.isCertificateEntry(alias)) {
                 Certificate certificate = keyStore.getCertificate(alias);
                 return certificate;
             }
@@ -65,7 +81,7 @@ public class KeyStoreRepository {
         return null;
     }
 
-    public void write(String alias, Certificate certificate) {
+    public void writeCertificate(String alias, Certificate certificate) {
         try {
             loadKeyStore();
             keyStore.setCertificateEntry(alias, certificate);
@@ -74,6 +90,28 @@ public class KeyStoreRepository {
             e.printStackTrace();
         } catch (IOException | CertificateException | NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public void deleteCertificate(String alias) {
+        try {
+            loadKeyStore();
+            keyStore.deleteEntry(alias);
+            keyStore.store(Files.newOutputStream(Paths.get(keyStorePath)), readPassword().toCharArray());
+        } catch (KeyStoreException | IOException | NoSuchAlgorithmException | CertificateException e) {
+            throw new RuntimeException("Error deleting key from keystore", e);
+        }
+    }
+
+    public void writeRootCACertificate(String alias) {
+        try {
+            byte[] certBytes = Files.readAllBytes(Path.of(rootPath));
+
+            CertificateFactory certFactory = CertificateFactory.getInstance("X.509");
+            X509Certificate cert = (X509Certificate) certFactory.generateCertificate(new ByteArrayInputStream(certBytes));
+            writeCertificate(alias, cert);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

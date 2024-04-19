@@ -3,6 +3,7 @@ package com.example.PKI.domain;
 import com.example.PKI.domain.enums.CertificateType;
 import com.example.PKI.domain.enums.KeyUsages;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
