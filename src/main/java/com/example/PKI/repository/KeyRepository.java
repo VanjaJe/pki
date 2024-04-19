@@ -14,9 +14,6 @@ import java.security.spec.PKCS8EncodedKeySpec;
 @Repository
 public class KeyRepository {
 
-    public KeyRepository() {
-    }
-
     private String keysPath = "src/main/resources/keys/";
 
     public void writePrivateKeyToFile(PrivateKey privateKey, String alias) {

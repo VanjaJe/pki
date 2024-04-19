@@ -15,5 +15,6 @@ import java.security.PublicKey;
 public class Subject {
     private PublicKey publicKey;
     private X500Name x500Name;
+    private String serialNumber;
 
 }

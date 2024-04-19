@@ -135,7 +135,7 @@ public class KeyStoreRepository {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                if (keyStore.isKeyEntry(alias)) {
+                if (keyStore.isCertificateEntry(alias)) {
                     Certificate cert = keyStore.getCertificate(alias);
                     certificates.add(cert);
                 }
