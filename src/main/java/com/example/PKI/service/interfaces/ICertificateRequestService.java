@@ -14,4 +14,7 @@ public interface ICertificateRequestService {
     public CertificateRequest acceptRequest(CertificateRequest request);
     public CertificateRequest declineRequest(CertificateRequest request);
 
+    CertificateRequest findOne(Long id);
+
+    CertificateRequest updateRequest(CertificateRequest certificateForUpdate, CertificateRequest newCertificateRequest);
 }

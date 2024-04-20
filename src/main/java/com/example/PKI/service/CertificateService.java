@@ -1,5 +1,6 @@
 package com.example.PKI.service;
 
+import com.example.PKI.domain.CertificateRequest;
 import com.example.PKI.domain.Subject;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.domain.Certificate;
@@ -127,4 +128,5 @@ public class CertificateService implements ICertificateService {
         }
         return childCertificates;
     }
+
 }
