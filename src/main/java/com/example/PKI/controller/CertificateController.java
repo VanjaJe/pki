@@ -5,6 +5,7 @@ import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.domain.User;
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.service.interfaces.ICertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,10 +23,25 @@ public class CertificateController {
 
     @Autowired
     private ICertificateService certificateService;
+
+    @Autowired
+    private CertificateRepository certificateRepository;
+
     @GetMapping
     public ResponseEntity<TreeNode> getAll () {
         TreeNode certificates=certificateService.getAll();
         return new ResponseEntity<>(certificates, HttpStatus.OK);
+    }
+
+    @DeleteMapping("/delete/{serialNumber}")
+    public ResponseEntity<String> deleteResource(@PathVariable String serialNumber) {
+        Certificate certificateToDelete = certificateRepository.findBySerialNumber(serialNumber);
+        if (certificateToDelete != null) {
+            certificateService.deleteCertificate(serialNumber);
+            return new ResponseEntity<>("OK", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+        }
     }
 
 }
