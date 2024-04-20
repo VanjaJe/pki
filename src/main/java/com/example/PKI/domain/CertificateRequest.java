@@ -27,8 +27,7 @@ public class CertificateRequest {
     @ManyToOne
     private User subject;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    private Certificate certificateIssuer;
+    private String issuerAlias;
 
     @Column(name = "date")
     private Date date;
