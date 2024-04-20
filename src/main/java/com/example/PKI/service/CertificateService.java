@@ -8,6 +8,9 @@ import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateService;
+import org.bouncycastle.asn1.x500.RDN;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -64,22 +67,29 @@ public class CertificateService implements ICertificateService {
         certificateDTO.setDateFrom(startDate);
         certificateDTO.setDateTo(endDate);
         certificateDTO.setSerialNumber(serialNumber);
-        String[] dnComponents = subjectDN.split(",");
-        for (String dnComponent : dnComponents) {
-            String[] keyValue = dnComponent.split("=");
-            if (keyValue.length == 2 && keyValue[0].trim().equals("E")) {
-                String email=keyValue[1].trim();
-                certificateDTO.setEmail(email);
+        RDN[] rdnsSubject = new X500Name(subjectDN).getRDNs();
+        for (RDN rdn : rdnsSubject) {
+            if (rdn.getFirst().getType().equals(BCStyle.CN)) {
+                certificateDTO.setEmail(rdn.getFirst().getValue().toString());
+            }
+            if (rdn.getFirst().getType().equals(BCStyle.DESCRIPTION)) {
+                certificateDTO.setCertificateType(CertificateType.valueOf(rdn.getFirst().getValue().toString()));
             }
         }
-        String[] dnComponentsIssuer = issuerDN.split(",");
-        for (String dnComponent : dnComponentsIssuer) {
-            String[] keyValue = dnComponent.split("=");
-            if (keyValue.length == 2 && keyValue[0].trim().equals("SERIALNUMBER")) {
-                String issuerSerialNumber= keyValue[1].trim();
+        RDN[] rdnsIssuer = new X500Name(issuerDN).getRDNs();
+        for (RDN rdn : rdnsIssuer) {
+            if (rdn.getFirst().getType().equals(BCStyle.SERIALNUMBER)) {
+                String issuerSerialNumber=rdn.getFirst().getValue().toString();
                 certificateDTO.setIssuerSerialNumber(issuerSerialNumber);
+                break;
             }
         }
+        if(certificateDTO.getIssuerSerialNumber()==null){
+            certificateDTO.setIssuerSerialNumber(serialNumber);
+            certificateDTO.setCertificateType(CertificateType.ROOT);
+        } else if (certificateDTO.getCertificateType()==null) {
+            certificateDTO.setCertificateType(CertificateType.END_ENTITY);
+        }//samo za sad, nije lepo upisano inace samo prvi if
         return certificateDTO;
     }
 
@@ -98,6 +108,9 @@ public class CertificateService implements ICertificateService {
         Collection<CertificateDTO> childCertificates = getAllForIssuer(parentCertificate.getSerialNumber(),certificateDTOS);
 
         for (CertificateDTO childCertificate : childCertificates) {
+            if(Objects.equals(childCertificate.getIssuerSerialNumber(), childCertificate.getSerialNumber())){
+                continue;
+            }
             TreeNode childNode = new TreeNode(childCertificate);
             parentNode.addChild(childNode);
             buildTree(childNode, childCertificate,certificateDTOS);

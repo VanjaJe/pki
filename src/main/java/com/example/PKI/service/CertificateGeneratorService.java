@@ -60,7 +60,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             //Takodje se navodi koji provider se koristi, u ovom slucaju Bouncy Castle
             builder = builder.setProvider("BC");
 
-            Subject subject = generateSubject(request.getSubject());
+            Subject subject = generateSubject(request.getSubject(),request.getCertificateType().toString());
             Issuer issuer = generateIssuer(request.getIssuerAlias());
 
             //Formira se objekat koji ce sadrzati privatni kljuc i koji ce se koristiti za potpisivanje sertifikata
@@ -110,7 +110,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
     }
 
 
-    public Subject generateSubject(User user) {
+    public Subject generateSubject(User user,String type) {
         KeyPair keyPairSubject = generateKeyPair();
         String serialNumber= generateSerialNumber();
         KeyRepository keyStoreRepository1=new KeyRepository();
@@ -120,6 +120,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
         builder.addRDN(BCStyle.SERIALNUMBER, serialNumber);
         builder.addRDN(BCStyle.CN, user.getAccount().getUsername());
+        builder.addRDN(BCStyle.DESCRIPTION, type);
         builder.addRDN(BCStyle.SURNAME, user.getLastName());
         builder.addRDN(BCStyle.GIVENNAME, user.getFirstName());
         builder.addRDN(BCStyle.UID, user.getId().toString());
@@ -142,13 +143,13 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
             builder.addRDN(BCStyle.SERIALNUMBER, certificate.getSerialNumber().toString());
             builder.addRDN(BCStyle.CN, "travelbee");
+            builder.addRDN(BCStyle.DESCRIPTION, "ROOT");
             builder.addRDN(BCStyle.SURNAME, "root");
             builder.addRDN(BCStyle.GIVENNAME,"root");
             builder.addRDN(BCStyle.UID, "rootid");
             KeyRepository keyRepository1=new KeyRepository();
 
             PrivateKey pk= keyRepository1.readPrivateKeyFromFile("root");
-
             return new Issuer(pk, builder.build());
 
         }else{
@@ -157,6 +158,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
             builder.addRDN(BCStyle.SERIALNUMBER, certificate.getSerialNumber());
             builder.addRDN(BCStyle.CN, certificate.getSubject().getAccount().getUsername());
+            builder.addRDN(BCStyle.DESCRIPTION, certificate.getCertificateType().toString());
             builder.addRDN(BCStyle.SURNAME, certificate.getSubject().getLastName());
             builder.addRDN(BCStyle.GIVENNAME, certificate.getSubject().getFirstName());
             builder.addRDN(BCStyle.UID, certificate.getSubject().getId().toString());
