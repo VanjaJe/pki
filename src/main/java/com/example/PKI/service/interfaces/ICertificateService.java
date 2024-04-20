@@ -17,4 +17,6 @@ public interface ICertificateService {
     CertificateDTO convertToCetificateDTO(X509Certificate certificate);
 
     List<X509Certificate> convertToX509(Collection<java.security.cert.Certificate> allCertificates);
+
+    void deleteCertificates(String alias,String serialNumber);
 }
