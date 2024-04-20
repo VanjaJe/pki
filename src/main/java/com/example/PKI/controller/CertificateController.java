@@ -33,7 +33,7 @@ public class CertificateController {
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/delete/{serialNumber}")
     public ResponseEntity<String> deleteResource(@PathVariable String serialNumber) {
         Certificate certificateToDelete = certificateRepository.findBySerialNumber(serialNumber);
         if (certificateToDelete != null) {

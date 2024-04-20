@@ -55,6 +55,7 @@ public class CertificateService implements ICertificateService {
 
     @Override
     public CertificateDTO convertToCetificateDTO(X509Certificate certificate) {
+        //dodati ektenzije u dto, izvuci ih iz 509 i setovati ovde!
         String issuerDN = certificate.getIssuerX500Principal().getName();
         String subjectDN = certificate.getSubjectX500Principal().getName();
         CertificateDTO certificateDTO=new CertificateDTO();

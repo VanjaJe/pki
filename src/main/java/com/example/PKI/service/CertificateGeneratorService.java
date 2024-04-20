@@ -69,9 +69,9 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
                 issuer = generateIssuer(findAliasCertificate.getAlias());
             }
 
-            if (isExpired(request.getIssuerSerialNumber())) {
-                return null;
-            }
+//            if (!isExpired(request.getIssuerSerialNumber())) {
+//                return null;
+//            }
             System.out.printf("nije istekaaaooaoaoa");
             ContentSigner contentSigner = builder.build(issuer.getPrivateKey());
 
@@ -228,7 +228,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 
         Date currentDate = new Date();
 
-        if (issuer.getDateTo().after(currentDate)) {
+        if (issuer.getDateTo().before(currentDate)) {
             return false;
         }
         else {
