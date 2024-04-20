@@ -1,11 +1,8 @@
 package com.example.PKI.domain;
 
 
-import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
-import com.example.PKI.domain.enums.KeyUsages;
 import com.example.PKI.domain.enums.RequestStatus;
-import com.example.PKI.dto.CertificateDTO;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -27,7 +24,8 @@ public class CertificateRequest {
     @ManyToOne
     private User subject;
 
-    private String issuerAlias;
+    @Column(name = "issuerSerialNumber")
+    private String issuerSerialNumber;
 
     @Column(name = "date")
     private Date date;
@@ -38,6 +36,11 @@ public class CertificateRequest {
     @Column(name = "type")
     private CertificateType certificateType;
 
-    @ElementCollection
+    @ManyToMany
+    @JoinTable(
+            name = "certificate_requests_key_usages",
+            joinColumns = @JoinColumn(name = "certificate_request_id"),
+            inverseJoinColumns = @JoinColumn(name = "key_usages_id")
+    )
     private List<KeyUsages> keyUsages;
 }

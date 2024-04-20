@@ -61,7 +61,13 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             builder = builder.setProvider("BC");
 
             Subject subject = generateSubject(request.getSubject(),request.getCertificateType().toString());
-            Issuer issuer = generateIssuer(request.getIssuerAlias());
+            Certificate findAliasCertificate=certificateRepository.findBySerialNumber(request.getIssuerSerialNumber());
+            Issuer issuer;
+            if (findAliasCertificate==null){
+                issuer = generateIssuer("root");
+            }else{
+                issuer = generateIssuer(findAliasCertificate.getAlias());
+            }
 
             //Formira se objekat koji ce sadrzati privatni kljuc i koji ce se koristiti za potpisivanje sertifikata
             ContentSigner contentSigner = builder.build(issuer.getPrivateKey());
@@ -90,8 +96,10 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             X509Certificate certificate=certConverter.getCertificate(certHolder);
 
             KeyStoreRepository kp=new KeyStoreRepository();
+            String alias=generateAlias(subject.getSerialNumber());
 
             kp.writeCertificate(generateAlias(subject.getSerialNumber()),certificate);
+            saveToDatabase(certificate,request,alias);
 
             return certificate;
 
@@ -107,6 +115,25 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             e.printStackTrace();
         }
         return null;
+    }
+    private void saveToDatabase(X509Certificate x509Certificate, CertificateRequest request, String alias){
+        X509Certificate issuerCertificate = (X509Certificate) keyStoreRepository.readCertificate("alias_"+request.getIssuerSerialNumber());
+
+        if(issuerCertificate==null){
+            issuerCertificate = (X509Certificate) keyStoreRepository.readCertificate("root");
+
+        }
+
+        Certificate certificate = new Certificate();
+        certificate.setCertificateType(request.getCertificateType());
+        certificate.setAlias(alias);
+        certificate.setSerialNumber(x509Certificate.getSerialNumber().toString());
+        certificate.setIssuerSerialNumber(issuerCertificate.getSerialNumber().toString());
+        certificate.setRevoked(false);
+        certificate.setRevokeReason("");
+//        certificate.setKeyUsages(request.getKeyUsages());
+        certificate.setSubject(request.getSubject());
+        certificateRepository.save(certificate);
     }
 
 
