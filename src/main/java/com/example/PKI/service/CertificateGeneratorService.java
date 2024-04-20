@@ -109,28 +109,53 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         return null;
     }
 
-    public void addKeyUsageExtensions(X509v3CertificateBuilder certBuilder, List<KeyUsageEnum> keyUsages) throws CertIOException {
-        for (KeyUsageEnum keyUsageEnum : keyUsages) {
-            int keyUsageBits = getKeyUsageBits(keyUsageEnum);
+//    public void addKeyUsageExtensions(X509v3CertificateBuilder certBuilder, List<KeyUsageEnum> keyUsages) throws CertIOException {
+//        for (KeyUsageEnum keyUsageEnum : keyUsages) {
+//            int keyUsageBits = getKeyUsageBits(keyUsageEnum);
+//            certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(keyUsageBits));
+//        }
+//    }
+//    private static int getKeyUsageBits(KeyUsageEnum keyUsageEnum) {
+//        switch (keyUsageEnum) {
+//            case DIGITAL_SIGNATURE:
+//                return KeyUsage.digitalSignature;
+//            case KEY_ENCIPHERMENT:
+//                return KeyUsage.keyEncipherment;
+//            case DATA_ENCIPHERMENT:
+//                return KeyUsage.dataEncipherment;
+//            case KEY_AGREEMENT:
+//                return KeyUsage.keyAgreement;
+//            case KEY_CERTIFICATE_SIGN:
+//                return KeyUsage.keyCertSign;
+//            default:
+//                throw new IllegalArgumentException();
+//        }
+//    }
+
+    public void addKeyUsageExtensions(X509v3CertificateBuilder certBuilder, List<String> keyUsages) throws CertIOException {
+        for (String keyUsage : keyUsages) {
+            int keyUsageBits = getKeyUsageBits(keyUsage);
             certBuilder.addExtension(Extension.keyUsage, true, new KeyUsage(keyUsageBits));
         }
     }
-    private static int getKeyUsageBits(KeyUsageEnum keyUsageEnum) {
-        switch (keyUsageEnum) {
-            case DIGITAL_SIGNATURE:
+
+    private int getKeyUsageBits(String keyUsage) {
+        switch (keyUsage) {
+            case "DIGITAL_SIGNATURE":
                 return KeyUsage.digitalSignature;
-            case KEY_ENCIPHERMENT:
+            case "KEY_ENCIPHERMENT":
                 return KeyUsage.keyEncipherment;
-            case DATA_ENCIPHERMENT:
+            case "DATA_ENCIPHERMENT":
                 return KeyUsage.dataEncipherment;
-            case KEY_AGREEMENT:
+            case "KEY_AGREEMENT":
                 return KeyUsage.keyAgreement;
-            case KEY_CERTIFICATE_SIGN:
+            case "KEY_CERTIFICATE_SIGN":
                 return KeyUsage.keyCertSign;
             default:
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException("Invalid key usage: " + keyUsage);
         }
     }
+
 
 
     private void saveToDatabase(X509Certificate x509Certificate, CertificateRequest request, String alias){
