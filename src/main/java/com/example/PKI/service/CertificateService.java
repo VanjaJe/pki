@@ -107,6 +107,8 @@ public class CertificateService implements ICertificateService {
         return  x509Certificates;
     }
 
+
+    @Override
     public void deleteCertificate(String serialNumber) {
         Certificate certificateToDelete = certificateRepository.findBySerialNumber(serialNumber);
         if (certificateToDelete != null) {
@@ -118,7 +120,8 @@ public class CertificateService implements ICertificateService {
         }
     }
 
-    private void deleteChildrenCertificates(Certificate parentCertificate) {
+    @Override
+    public void deleteChildrenCertificates(Certificate parentCertificate) {
         Collection<Certificate> childrenCertificates = certificateRepository.findAllByIssuerSerialNumber(parentCertificate.getSerialNumber());
         for (Certificate childCertificate : childrenCertificates) {
             deleteChildrenCertificates(childCertificate);
