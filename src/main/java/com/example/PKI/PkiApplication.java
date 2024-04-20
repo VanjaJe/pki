@@ -1,5 +1,6 @@
 package com.example.PKI;
 
+import com.example.PKI.domain.CertificateRequest;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -34,10 +35,10 @@ public class PkiApplication {
 //		yourObject.setReportingReason("example_reporting_reason");
 //		yourObject.setDeleted(false);
 //		yourObject.setAccount(account);
-//
-//
-//
-//		// Set properties of the CertificateRequest object
+////
+////
+////
+////		// Set properties of the CertificateRequest object
 //		certificateRequest.setSubject(yourObject); // Assuming User class exists and provides a default constructor
 //		certificateRequest.setIssuerAlias("root"); // Assuming Certificate class exists and provides a default constructor
 //		certificateRequest.setDate(new Date());
@@ -55,12 +56,6 @@ public class PkiApplication {
 //		for (Certificate certificate:certificates){
 //			System.out.println(certificate);
 //		}
-
-
-
-
-
-
 
 	}
 

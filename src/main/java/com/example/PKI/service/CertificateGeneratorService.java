@@ -8,6 +8,7 @@ import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.repository.KeyRepository;
 import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateGeneratorService;
+import com.example.PKI.service.interfaces.ICertificateService;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
@@ -45,6 +46,9 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
     @Autowired
     KeyStoreRepository keyStoreRepository;
 
+//    @Autowired
+//    ICertificateService certificateService;
+
     public CertificateGeneratorService(){
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
     }
@@ -53,11 +57,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
     @Override
     public X509Certificate generateCertificate(CertificateRequest request) {
         try {
-            //Posto klasa za generisanje sertifiakta ne moze da primi direktno privatni kljuc pravi se builder za objekat
-            //Ovaj objekat sadrzi privatni kljuc izdavaoca sertifikata i koristiti se za potpisivanje sertifikata
-            //Parametar koji se prosledjuje je algoritam koji se koristi za potpisivanje sertifiakta
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
-            //Takodje se navodi koji provider se koristi, u ovom slucaju Bouncy Castle
             builder = builder.setProvider("BC");
 
             Subject subject = generateSubject(request.getSubject(),request.getCertificateType().toString());
@@ -69,13 +69,15 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
                 issuer = generateIssuer(findAliasCertificate.getAlias());
             }
 
-            //Formira se objekat koji ce sadrzati privatni kljuc i koji ce se koristiti za potpisivanje sertifikata
+            if (isExpired(request.getIssuerSerialNumber())) {
+                return null;
+            }
+            System.out.printf("nije istekaaaooaoaoa");
             ContentSigner contentSigner = builder.build(issuer.getPrivateKey());
 
             Date startDate = new Date();
             Date endDate = getEndDate(request.getCertificateType());
 
-            //Postavljaju se podaci za generisanje sertifiakta
             X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(issuer.getX500Name(),
                     new BigInteger(subject.getSerialNumber()),
                     startDate,
@@ -83,15 +85,10 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
                     subject.getX500Name(),
                     subject.getPublicKey());
 
-            //Generise se sertifikat
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
-            //Builder generise sertifikat kao objekat klase X509CertificateHolder
-            //Nakon toga je potrebno certHolder konvertovati u sertifikat, za sta se koristi certConverter
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
             certConverter = certConverter.setProvider("BC");
-
-            //Konvertuje objekat u sertifikat
 
             X509Certificate certificate=certConverter.getCertificate(certHolder);
 
@@ -227,5 +224,47 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         KeyRepository keyStoreRepository1=new KeyRepository();
 
         return keyStoreRepository1.readPrivateKeyFromFile(alias);
+    }
+
+    public boolean isExpired(String serialNumber) {
+        String alias = generateAlias(serialNumber);
+
+        CertificateService sc = new CertificateService();
+        CertificateDTO issuer = sc.getCertificateFromKeyStore(alias);
+
+        Date currentDate = new Date();
+
+        if (issuer.getDateTo().after(currentDate)) {
+            return false;
+        }
+        else {
+            CertificateDTO parent = sc.getCertificateFromKeyStore(issuer.getIssuerSerialNumber());
+            if (parent == null) {
+                return false;
+            }
+            if (!parent.getSerialNumber().equals(issuer.getSerialNumber())) {
+                System.out.printf("usao nekad i ovde");
+                isExpired(parent.getSerialNumber());
+            }
+        }
+        return true;
+    }
+
+    public boolean isRevoked(String serialNumber) {
+        String alias = generateAlias(serialNumber);
+
+        Certificate issuer = certificateRepository.findByAlias(alias);
+
+        if (issuer.isRevoked()) {
+            return false;
+        }
+        else {
+            Certificate parent = certificateRepository.findByAlias(alias);
+            if (!parent.getSerialNumber().equals(issuer.getSerialNumber())) {
+                System.out.printf("usao nekad i ovde");
+                isRevoked(parent.getSerialNumber());
+            }
+        }
+        return true;
     }
 }
