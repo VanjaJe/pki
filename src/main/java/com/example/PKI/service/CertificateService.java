@@ -1,6 +1,5 @@
 package com.example.PKI.service;
 
-import com.example.PKI.domain.Subject;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
@@ -11,13 +10,9 @@ import com.example.PKI.service.interfaces.ICertificateService;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.cert.X509CertificateHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.security.auth.x500.X500Principal;
-import java.io.IOException;
-import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -126,5 +121,35 @@ public class CertificateService implements ICertificateService {
             }
         }
         return childCertificates;
+    }
+
+    @Override
+    public CertificateDTO getCertificateFromKeyStore(String alias) {
+        KeyStoreRepository ks = new KeyStoreRepository();
+        java.security.cert.Certificate certificateSecurity = ks.readCertificate(alias);
+        X509Certificate x509Cert = (X509Certificate) certificateSecurity;
+
+        return convertToCetificateDTO(x509Cert);
+    }
+
+    @Override
+    public CertificateDTO invokeCertificate(String alias, String reason) {
+        Certificate certificate = certificateRepository.findByAlias(alias);
+        certificate.setRevoked(true);
+        certificate.setRevokeReason(reason);
+        Collection<Certificate> children = certificateRepository.findAllByIssuerSerialNumber(certificate.getSerialNumber());
+
+        invokeChildren(children);
+
+        return null;
+    }
+
+    public void invokeChildren(Collection<Certificate> children) {
+        for (Certificate child : children) {
+            child.setRevoked(true);
+            Collection<Certificate> children2 = certificateRepository.findAllByIssuerSerialNumber(child.getSerialNumber());
+
+            invokeChildren(children2);
+        }
     }
 }

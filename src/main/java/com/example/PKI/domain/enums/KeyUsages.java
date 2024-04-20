@@ -9,5 +9,5 @@ public enum KeyUsages {
     KEY_AGREEMENT,
     CRL_SIGNING,
     ENCRYPT_ONLY,
-    DECRYPT_ONLY;
+    DECRYPT_ONLY
 }

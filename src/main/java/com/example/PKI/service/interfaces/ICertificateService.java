@@ -17,4 +17,9 @@ public interface ICertificateService {
     CertificateDTO convertToCetificateDTO(X509Certificate certificate);
 
     List<X509Certificate> convertToX509(Collection<java.security.cert.Certificate> allCertificates);
+
+    public CertificateDTO getCertificateFromKeyStore(String alias);
+//    public CertificateDTO invokeCertificate(String alias);
+
+    CertificateDTO invokeCertificate(String alias, String reason);
 }
