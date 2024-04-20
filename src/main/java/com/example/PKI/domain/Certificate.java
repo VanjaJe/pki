@@ -1,16 +1,12 @@
 package com.example.PKI.domain;
 
 import com.example.PKI.domain.enums.CertificateType;
-import com.example.PKI.domain.enums.KeyUsages;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.engine.internal.Cascade;
 
-import java.security.cert.X509Certificate;
-import java.util.Date;
 import java.util.List;
 
 @Entity
@@ -41,8 +37,13 @@ public class Certificate {
     @Column(name = "revoke_reason")
     private String revokeReason;
 
-    @ElementCollection
-    private List<KeyUsages> keyUsages;
+//    @ManyToMany
+//    @JoinTable(
+//            name = "certificate_key_usages",
+//            joinColumns = @JoinColumn(name = "certificate_id"),
+//            inverseJoinColumns = @JoinColumn(name = "key_usages_id")
+//    )
+//    private List<KeyUsages> keyUsages;
 
     @ManyToOne
     private User subject;

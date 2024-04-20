@@ -142,7 +142,7 @@ public class CertificateService implements ICertificateService {
         invokeChildren(children);
 
         return null;
-    }
+    }git a
 
     public void invokeChildren(Collection<Certificate> children) {
         for (Certificate child : children) {

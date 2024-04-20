@@ -61,9 +61,15 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             builder = builder.setProvider("BC");
 
             Subject subject = generateSubject(request.getSubject(),request.getCertificateType().toString());
-            Issuer issuer = generateIssuer(request.getIssuerAlias());
+            Certificate findAliasCertificate=certificateRepository.findBySerialNumber(request.getIssuerSerialNumber());
+            Issuer issuer;
+            if (findAliasCertificate==null){
+                issuer = generateIssuer("root");
+            }else{
+                issuer = generateIssuer(findAliasCertificate.getAlias());
+            }
 
-            if (isExpired(request.getIssuerAlias())) {
+            if (isExpired(request.getIssuerSerialNumber())) {
                 return null;
             }
             System.out.printf("nije istekaaaooaoaoa");
@@ -87,8 +93,10 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             X509Certificate certificate=certConverter.getCertificate(certHolder);
 
             KeyStoreRepository kp=new KeyStoreRepository();
+            String alias=generateAlias(subject.getSerialNumber());
 
             kp.writeCertificate(generateAlias(subject.getSerialNumber()),certificate);
+            saveToDatabase(certificate,request,alias);
 
             return certificate;
 
@@ -104,6 +112,25 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             e.printStackTrace();
         }
         return null;
+    }
+    private void saveToDatabase(X509Certificate x509Certificate, CertificateRequest request, String alias){
+        X509Certificate issuerCertificate = (X509Certificate) keyStoreRepository.readCertificate("alias_"+request.getIssuerSerialNumber());
+
+        if(issuerCertificate==null){
+            issuerCertificate = (X509Certificate) keyStoreRepository.readCertificate("root");
+
+        }
+
+        Certificate certificate = new Certificate();
+        certificate.setCertificateType(request.getCertificateType());
+        certificate.setAlias(alias);
+        certificate.setSerialNumber(x509Certificate.getSerialNumber().toString());
+        certificate.setIssuerSerialNumber(issuerCertificate.getSerialNumber().toString());
+        certificate.setRevoked(false);
+        certificate.setRevokeReason("");
+//        certificate.setKeyUsages(request.getKeyUsages());
+        certificate.setSubject(request.getSubject());
+        certificateRepository.save(certificate);
     }
 
 
@@ -199,9 +226,11 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         return keyStoreRepository1.readPrivateKeyFromFile(alias);
     }
 
-    public boolean isExpired(String issuerAlias) {
+    public boolean isExpired(String serialNumber) {
+        String alias = generateAlias(serialNumber);
+
         CertificateService sc = new CertificateService();
-        CertificateDTO issuer = sc.getCertificateFromKeyStore(issuerAlias);
+        CertificateDTO issuer = sc.getCertificateFromKeyStore(alias);
 
         Date currentDate = new Date();
 
@@ -221,14 +250,16 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         return true;
     }
 
-    public boolean isRevoked(String issuerAlias) {
-        Certificate issuer = certificateRepository.findByAlias(issuerAlias);
+    public boolean isRevoked(String serialNumber) {
+        String alias = generateAlias(serialNumber);
+
+        Certificate issuer = certificateRepository.findByAlias(alias);
 
         if (issuer.isRevoked()) {
             return false;
         }
         else {
-            Certificate parent = certificateRepository.findByAlias(issuerAlias);
+            Certificate parent = certificateRepository.findByAlias(alias);
             if (!parent.getSerialNumber().equals(issuer.getSerialNumber())) {
                 System.out.printf("usao nekad i ovde");
                 isRevoked(parent.getSerialNumber());

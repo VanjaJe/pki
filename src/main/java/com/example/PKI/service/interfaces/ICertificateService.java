@@ -1,6 +1,7 @@
 package com.example.PKI.service.interfaces;
 
 import com.example.PKI.domain.Certificate;
+import com.example.PKI.domain.CertificateRequest;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.dto.CertificateDTO;
 
