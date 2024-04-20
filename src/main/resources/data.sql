@@ -1,3 +1,19 @@
+--
+-- INSERT INTO key_usages (id, name) VALUES
+--                                      (1, 'DIGITAL_SIGNATURE'),
+--                                      (2, 'CERTIFICATE_SIGNING'),
+--                                      (3, 'NON_REPUDIATION'),
+--                                      (4, 'KEY_ENCIPHERMENT'),
+--                                      (5, 'DATA_ENCIPHERMENT'),
+--                                      (6, 'KEY_AGREEMENT'),
+--                                      (7, 'CRL_SIGNING'),
+--                                      (8, 'ENCRYPT_ONLY'),
+--                                      (9, 'DECRYPT_ONLY');
+
+
+
+
+
 -- INSERT INTO addresses (country, city, postal_code, address,deleted) VALUES ('Serbia', 'Novi Sad', '21000', '54 Alekse Santica',false);
 -- INSERT INTO addresses (country, city, postal_code, address,deleted) VALUES ('Serbia', 'Novi Sad', '21000', '54 Futoska',false);
 -- INSERT INTO addresses (country, city, postal_code, address,deleted) VALUES ('Serbia', 'Novi Sad', '21000', '3 Puskinova',false);

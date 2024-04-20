@@ -1,6 +1,7 @@
 package com.example.PKI.service.interfaces;
 
 import com.example.PKI.domain.Certificate;
+import com.example.PKI.domain.CertificateRequest;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.dto.CertificateDTO;
 
@@ -18,7 +19,14 @@ public interface ICertificateService {
 
     List<X509Certificate> convertToX509(Collection<java.security.cert.Certificate> allCertificates);
 
+
     void deleteCertificate(String serialNumber);
 
     void deleteChildrenCertificates(Certificate parentCertificate);
+
+    public CertificateDTO getCertificateFromKeyStore(String alias);
+//    public CertificateDTO invokeCertificate(String alias);
+
+    CertificateDTO invokeCertificate(String alias, String reason);
+
 }
