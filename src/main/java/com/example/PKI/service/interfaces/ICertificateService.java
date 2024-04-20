@@ -19,8 +19,14 @@ public interface ICertificateService {
 
     List<X509Certificate> convertToX509(Collection<java.security.cert.Certificate> allCertificates);
 
+
+    void deleteCertificate(String serialNumber);
+
+    void deleteChildrenCertificates(Certificate parentCertificate);
+
     public CertificateDTO getCertificateFromKeyStore(String alias);
 //    public CertificateDTO invokeCertificate(String alias);
 
     CertificateDTO invokeCertificate(String alias, String reason);
+
 }

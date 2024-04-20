@@ -1,5 +1,7 @@
 package com.example.PKI.repository;
 
+import lombok.NoArgsConstructor;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -46,6 +48,21 @@ public class KeyRepository {
             privateKeyFile.delete();
         }
     }
+
+    public void deleteAllKeyFilesExceptRoot() {
+        File keysDirectory = new File(keysPath);
+        if (keysDirectory.exists() && keysDirectory.isDirectory()) {
+            File[] keyFiles = keysDirectory.listFiles();
+            if (keyFiles != null) {
+                for (File keyFile : keyFiles) {
+                    if (!keyFile.getName().equals("root.key")) {
+                        keyFile.delete();
+                    }
+                }
+            }
+        }
+    }
+
 
 
 }

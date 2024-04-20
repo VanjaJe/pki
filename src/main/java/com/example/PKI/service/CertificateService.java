@@ -5,6 +5,7 @@ import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
 import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.repository.CertificateRepository;
+import com.example.PKI.repository.KeyRepository;
 import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateService;
 import org.bouncycastle.asn1.x500.RDN;
@@ -24,6 +25,9 @@ public class CertificateService implements ICertificateService {
 
     @Autowired
     KeyStoreRepository keyStoreRepository;
+
+    @Autowired
+    KeyRepository keyRepository;
 
     @Override
     public TreeNode getAll() {
@@ -98,6 +102,31 @@ public class CertificateService implements ICertificateService {
         return  x509Certificates;
     }
 
+
+    @Override
+    public void deleteCertificate(String serialNumber) {
+        Certificate certificateToDelete = certificateRepository.findBySerialNumber(serialNumber);
+        if (certificateToDelete != null) {
+            deleteChildrenCertificates(certificateToDelete);
+
+            keyRepository.deletePrivateKey(certificateToDelete.getAlias());
+            keyStoreRepository.deleteCertificate(certificateToDelete.getAlias());
+            certificateRepository.delete(certificateToDelete);
+        }
+    }
+
+    @Override
+    public void deleteChildrenCertificates(Certificate parentCertificate) {
+        Collection<Certificate> childrenCertificates = certificateRepository.findAllByIssuerSerialNumber(parentCertificate.getSerialNumber());
+        for (Certificate childCertificate : childrenCertificates) {
+            deleteChildrenCertificates(childCertificate);
+
+            keyRepository.deletePrivateKey(childCertificate.getAlias());
+            keyStoreRepository.deleteCertificate(childCertificate.getAlias());
+            certificateRepository.delete(childCertificate);
+        }
+    }
+
     @Override
     public void buildTree(TreeNode parentNode, CertificateDTO parentCertificate,List<CertificateDTO>certificateDTOS) {
         Collection<CertificateDTO> childCertificates = getAllForIssuer(parentCertificate.getSerialNumber(),certificateDTOS);
@@ -123,6 +152,9 @@ public class CertificateService implements ICertificateService {
         return childCertificates;
     }
 
+
+
+
     @Override
     public CertificateDTO getCertificateFromKeyStore(String alias) {
         KeyStoreRepository ks = new KeyStoreRepository();
@@ -142,7 +174,7 @@ public class CertificateService implements ICertificateService {
         invokeChildren(children);
 
         return null;
-    }git a
+    }
 
     public void invokeChildren(Collection<Certificate> children) {
         for (Certificate child : children) {
@@ -153,3 +185,4 @@ public class CertificateService implements ICertificateService {
         }
     }
 }
+

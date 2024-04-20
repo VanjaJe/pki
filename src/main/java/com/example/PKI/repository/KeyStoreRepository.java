@@ -22,8 +22,6 @@ import java.util.Enumeration;
 @Repository
 public class KeyStoreRepository {
 
-    @Autowired
-    private KeyRepository keyRepository;
     public KeyStore keyStore;
     private String passwordPath = "src/main/resources/password.txt";
     private String keyStorePath = "src/main/resources/keystore/keystore.jks";
@@ -59,6 +57,7 @@ public class KeyStoreRepository {
         try {
             loadKeyStore();
             Certificate cert = keyStore.getCertificate(alias);
+            KeyRepository keyRepository = new KeyRepository();
             PrivateKey privateKey = keyRepository.readPrivateKeyFromFile(alias);
 
             X500Name issuerName = new JcaX509CertificateHolder((X509Certificate) cert).getSubject();

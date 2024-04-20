@@ -20,6 +20,11 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Example;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -30,29 +35,24 @@ import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.Date;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
+import java.util.function.Function;
 
 @Service
 public class CertificateGeneratorService implements ICertificateGeneratorService {
 
     @Autowired
     CertificateRepository certificateRepository;
-//
-//    @Autowired
-//    KeyRepository keyRepository;
+    private final KeyRepository keyRepository;
+    private final KeyStoreRepository keyStoreRepository;
 
     @Autowired
-    KeyStoreRepository keyStoreRepository;
-
-//    @Autowired
-//    ICertificateService certificateService;
-
-    public CertificateGeneratorService(){
+    public CertificateGeneratorService(KeyRepository keyRepository,
+                                       KeyStoreRepository keyStoreRepository) {
         Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+        this.keyRepository = keyRepository;
+        this.keyStoreRepository = keyStoreRepository;
     }
-
 
     @Override
     public X509Certificate generateCertificate(CertificateRequest request) {
@@ -91,11 +91,9 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             certConverter = certConverter.setProvider("BC");
 
             X509Certificate certificate=certConverter.getCertificate(certHolder);
+            String alias = generateAlias(subject.getSerialNumber());
 
-            KeyStoreRepository kp=new KeyStoreRepository();
-            String alias=generateAlias(subject.getSerialNumber());
-
-            kp.writeCertificate(generateAlias(subject.getSerialNumber()),certificate);
+            keyStoreRepository.writeCertificate(alias,certificate);
             saveToDatabase(certificate,request,alias);
 
             return certificate;
@@ -113,6 +111,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         }
         return null;
     }
+
     private void saveToDatabase(X509Certificate x509Certificate, CertificateRequest request, String alias){
         X509Certificate issuerCertificate = (X509Certificate) keyStoreRepository.readCertificate("alias_"+request.getIssuerSerialNumber());
 
@@ -131,14 +130,13 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 //        certificate.setKeyUsages(request.getKeyUsages());
         certificate.setSubject(request.getSubject());
         certificateRepository.save(certificate);
-    }
 
+    }
 
     public Subject generateSubject(User user,String type) {
         KeyPair keyPairSubject = generateKeyPair();
         String serialNumber= generateSerialNumber();
-        KeyRepository keyStoreRepository1=new KeyRepository();
-        keyStoreRepository1.writePrivateKeyToFile(keyPairSubject.getPrivate(),generateAlias(serialNumber));
+        keyRepository.writePrivateKeyToFile(keyPairSubject.getPrivate(),generateAlias(serialNumber));
 
         //klasa X500NameBuilder pravi X500Name objekat koji predstavlja podatke o vlasniku
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
@@ -162,8 +160,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 
     public Issuer generateIssuer(String issuerAlias) {
         if(Objects.equals(issuerAlias, "root")){
-            KeyStoreRepository keyStoreRepository1=new KeyStoreRepository();
-            X509Certificate certificate= (X509Certificate) keyStoreRepository1.readCertificate(issuerAlias);
+            X509Certificate certificate= (X509Certificate) keyStoreRepository.readCertificate(issuerAlias);
             X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
             builder.addRDN(BCStyle.SERIALNUMBER, certificate.getSerialNumber().toString());
             builder.addRDN(BCStyle.CN, "travelbee");
@@ -171,9 +168,8 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             builder.addRDN(BCStyle.SURNAME, "root");
             builder.addRDN(BCStyle.GIVENNAME,"root");
             builder.addRDN(BCStyle.UID, "rootid");
-            KeyRepository keyRepository1=new KeyRepository();
 
-            PrivateKey pk= keyRepository1.readPrivateKeyFromFile("root");
+            PrivateKey pk= keyRepository.readPrivateKeyFromFile("root");
             return new Issuer(pk, builder.build());
 
         }else{
@@ -221,9 +217,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 
     public PrivateKey getIssuerPrivateKey(String serialNumber) {
         String alias = certificateRepository.findBySerialNumber(serialNumber).getAlias();
-        KeyRepository keyStoreRepository1=new KeyRepository();
-
-        return keyStoreRepository1.readPrivateKeyFromFile(alias);
+        return keyRepository.readPrivateKeyFromFile(alias);
     }
 
     public boolean isExpired(String serialNumber) {
