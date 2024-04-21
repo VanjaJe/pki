@@ -3,15 +3,18 @@ package com.example.PKI.service;
 import com.example.PKI.domain.*;
 import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.domain.enums.KeyUsageEnum;
 import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.repository.CertificateRepository;
+import com.example.PKI.repository.CertificateRequestRepository;
 import com.example.PKI.repository.KeyRepository;
 import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateGeneratorService;
-import com.example.PKI.service.interfaces.ICertificateService;
-import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
+import org.bouncycastle.cert.CertIOException;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
@@ -20,11 +23,6 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Example;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 
 import java.math.BigInteger;
@@ -36,13 +34,15 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.function.Function;
 
 @Service
 public class CertificateGeneratorService implements ICertificateGeneratorService {
 
     @Autowired
     CertificateRepository certificateRepository;
+
+    @Autowired
+    CertificateRequestRepository certificateRequestRepository;
     private final KeyRepository keyRepository;
     private final KeyStoreRepository keyStoreRepository;
 
@@ -57,6 +57,8 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
     @Override
     public X509Certificate generateCertificate(CertificateRequest request) {
         try {
+            int keyUsageBits=getKeyUsages(request);
+            KeyUsage keyUsageExtension = new KeyUsage(keyUsageBits);
             JcaContentSignerBuilder builder = new JcaContentSignerBuilder("SHA256WithRSAEncryption");
             builder = builder.setProvider("BC");
 
@@ -93,6 +95,8 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
                     subject.getX500Name(),
                     subject.getPublicKey());
 
+            certGen.addExtension(Extension.keyUsage, false, keyUsageExtension);
+
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
             JcaX509CertificateConverter certConverter = new JcaX509CertificateConverter();
@@ -116,8 +120,43 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             e.printStackTrace();
         } catch (CertificateException e) {
             e.printStackTrace();
+        } catch (CertIOException e) {
+            throw new RuntimeException(e);
         }
         return null;
+    }
+
+    private int getKeyUsages(CertificateRequest request) {
+        int keyUsageBits = 0;
+        for (KeyUsageEnum usage : request.getKeyUsages()) {
+            switch (usage) {
+                case DIGITAL_SIGNATURE:
+                    keyUsageBits |= KeyUsage.digitalSignature;
+                    break;
+                case CERTIFICATE_SIGNING:
+                    keyUsageBits |= KeyUsage.keyCertSign;
+                    break;
+                case NON_REPUDIATION:
+                    keyUsageBits |= KeyUsage.nonRepudiation;
+                    break;
+                case KEY_ENCIPHERMENT:
+                    keyUsageBits |= KeyUsage.keyEncipherment;
+                    break;
+                case DATA_ENCIPHERMENT:
+                    keyUsageBits |= KeyUsage.dataEncipherment;
+                    break;
+                case KEY_AGREEMENT:
+                    keyUsageBits |= KeyUsage.keyAgreement;
+                    break;
+                case CRL_SIGNING:
+                    keyUsageBits |= KeyUsage.cRLSign;
+                    break;
+                case ENCRYPT_ONLY:
+                    keyUsageBits |= KeyUsage.encipherOnly;
+                    break;
+            }
+        }
+        return keyUsageBits;
     }
 
     private void saveToDatabase(X509Certificate x509Certificate, CertificateRequest request, String alias){
@@ -141,7 +180,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 
     }
 
-    public Subject generateSubject(User user,String type) {
+    public Subject generateSubject(User user, String type) {
         KeyPair keyPairSubject = generateKeyPair();
         String serialNumber= generateSerialNumber();
         keyRepository.writePrivateKeyToFile(keyPairSubject.getPrivate(),generateAlias(serialNumber));
@@ -154,6 +193,7 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         builder.addRDN(BCStyle.SURNAME, user.getLastName());
         builder.addRDN(BCStyle.GIVENNAME, user.getFirstName());
         builder.addRDN(BCStyle.UID, user.getId().toString());
+
 
         return new Subject(keyPairSubject.getPublic(), builder.build(),serialNumber);
     }
