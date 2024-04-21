@@ -1,6 +1,7 @@
 package com.example.PKI.dto;
 
 
+import com.example.PKI.domain.SubjectData;
 import com.example.PKI.domain.User;
 import com.example.PKI.domain.enums.CertificateType;
 import com.example.PKI.domain.enums.KeyUsageEnum;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 public class CertificateRequestDTO {
     private Long id;
-    private User subject;
+    private SubjectData subject;
     private String issuerSerialNumber;
     private Date date;
     private RequestStatus requestStatus;

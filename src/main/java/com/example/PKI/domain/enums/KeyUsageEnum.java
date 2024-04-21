@@ -1,6 +1,7 @@
 package com.example.PKI.domain.enums;
 
 public enum KeyUsageEnum {
+    CERTIFICATE_AUTHORITY,
     DIGITAL_SIGNATURE,
     CERTIFICATE_SIGNING,
     NON_REPUDIATION,

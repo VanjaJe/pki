@@ -62,7 +62,6 @@ public class CertificateService implements ICertificateService {
 
     @Override
     public CertificateDTO convertToCetificateDTO(X509Certificate certificate) {
-        //dodati ektenzije u dto, izvuci ih iz 509 i setovati ovde!
         String issuerDN = certificate.getIssuerX500Principal().getName();
         String subjectDN = certificate.getSubjectX500Principal().getName();
         CertificateDTO certificateDTO=new CertificateDTO();
@@ -103,7 +102,7 @@ public class CertificateService implements ICertificateService {
         return certificateDTO;
     }
 
-    private List<KeyUsageEnum> getKeyUsages(X509Certificate certificate) {
+    public List<KeyUsageEnum> getKeyUsages(X509Certificate certificate) {
         byte[] extensionValue = certificate.getExtensionValue(Extension.keyUsage.getId());
         List<KeyUsageEnum> keyUsages = new ArrayList<>();
         if (extensionValue != null) {

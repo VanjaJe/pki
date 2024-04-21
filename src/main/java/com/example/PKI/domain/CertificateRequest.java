@@ -23,7 +23,7 @@ public class CertificateRequest {
     private Long id;
 
     @ManyToOne
-    private User subject;
+    private SubjectData subject;
 
     @Column(name = "issuerSerialNumber")
     private String issuerSerialNumber;

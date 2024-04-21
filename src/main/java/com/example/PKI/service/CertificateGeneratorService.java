@@ -12,6 +12,7 @@ import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateGeneratorService;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.cert.CertIOException;
@@ -96,6 +97,11 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
                     subject.getPublicKey());
 
             certGen.addExtension(Extension.keyUsage, false, keyUsageExtension);
+//            certGen.addExtension(Extension., false, keyUsageExtension);
+
+            if (request.getCertificateType() == CertificateType.INTERMEDIATE) {
+                certGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(true));
+            }
 
             X509CertificateHolder certHolder = certGen.build(contentSigner);
 
@@ -174,24 +180,24 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
         certificate.setIssuerSerialNumber(issuerCertificate.getSerialNumber().toString());
         certificate.setRevoked(false);
         certificate.setRevokeReason("");
-//        certificate.setKeyUsages(request.getKeyUsages());
+//      certificate.setKeyUsages(request.getKeyUsages());
         certificate.setSubject(request.getSubject());
         certificateRepository.save(certificate);
 
     }
 
-    public Subject generateSubject(User user, String type) {
+    public Subject generateSubject(SubjectData user, String type) {
         KeyPair keyPairSubject = generateKeyPair();
         String serialNumber= generateSerialNumber();
         keyRepository.writePrivateKeyToFile(keyPairSubject.getPrivate(),generateAlias(serialNumber));
 
-        //klasa X500NameBuilder pravi X500Name objekat koji predstavlja podatke o vlasniku
         X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
         builder.addRDN(BCStyle.SERIALNUMBER, serialNumber);
-        builder.addRDN(BCStyle.CN, user.getAccount().getUsername());
+        builder.addRDN(BCStyle.CN, user.getEmail());
         builder.addRDN(BCStyle.DESCRIPTION, type);
-        builder.addRDN(BCStyle.SURNAME, user.getLastName());
-        builder.addRDN(BCStyle.GIVENNAME, user.getFirstName());
+        System.out.println(user.getLastname());
+        builder.addRDN(BCStyle.SURNAME, user.getLastname());
+        builder.addRDN(BCStyle.GIVENNAME, user.getName());
         builder.addRDN(BCStyle.UID, user.getId().toString());
 
 
@@ -225,10 +231,10 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             KeyPair kp = generateKeyPair();
             X500NameBuilder builder = new X500NameBuilder(BCStyle.INSTANCE);
             builder.addRDN(BCStyle.SERIALNUMBER, certificate.getSerialNumber());
-            builder.addRDN(BCStyle.CN, certificate.getSubject().getAccount().getUsername());
+            builder.addRDN(BCStyle.CN, certificate.getSubject().getEmail());
             builder.addRDN(BCStyle.DESCRIPTION, certificate.getCertificateType().toString());
-            builder.addRDN(BCStyle.SURNAME, certificate.getSubject().getLastName());
-            builder.addRDN(BCStyle.GIVENNAME, certificate.getSubject().getFirstName());
+            builder.addRDN(BCStyle.SURNAME, certificate.getSubject().getLastname());
+            builder.addRDN(BCStyle.GIVENNAME, certificate.getSubject().getName());
             builder.addRDN(BCStyle.UID, certificate.getSubject().getId().toString());
             PrivateKey pk = getIssuerPrivateKey(certificate.getSerialNumber());
 

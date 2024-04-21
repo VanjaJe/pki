@@ -37,14 +37,6 @@ public class Certificate {
     @Column(name = "revoke_reason")
     private String revokeReason;
 
-//    @ManyToMany
-//    @JoinTable(
-//            name = "certificate_key_usages",
-//            joinColumns = @JoinColumn(name = "certificate_id"),
-//            inverseJoinColumns = @JoinColumn(name = "key_usages_id")
-//    )
-//    private List<KeyUsages> keyUsages;
-
     @ManyToOne
-    private User subject;
+    private SubjectData subject;
 }
