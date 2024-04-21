@@ -3,7 +3,7 @@ package com.example.PKI.dto;
 
 import com.example.PKI.domain.User;
 import com.example.PKI.domain.enums.CertificateType;
-import com.example.PKI.domain.KeyUsages;
+import com.example.PKI.domain.enums.KeyUsageEnum;
 import com.example.PKI.domain.enums.RequestStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,5 +23,5 @@ public class CertificateRequestDTO {
     private Date date;
     private RequestStatus requestStatus;
     private CertificateType certificateType;
-    private List<KeyUsages> keyUsages;
+    private List<KeyUsageEnum> keyUsages;
 }

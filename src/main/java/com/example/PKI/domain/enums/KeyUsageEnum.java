@@ -1,0 +1,14 @@
+package com.example.PKI.domain.enums;
+
+public enum KeyUsageEnum {
+    DIGITAL_SIGNATURE,
+    CERTIFICATE_SIGNING,
+    NON_REPUDIATION,
+    KEY_ENCIPHERMENT,
+    DATA_ENCIPHERMENT,
+    KEY_AGREEMENT,
+    CRL_SIGNING,
+    ENCRYPT_ONLY,
+    DECRYPT_ONLY
+}
+

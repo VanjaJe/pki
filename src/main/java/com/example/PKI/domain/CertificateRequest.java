@@ -2,6 +2,7 @@ package com.example.PKI.domain;
 
 
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.domain.enums.KeyUsageEnum;
 import com.example.PKI.domain.enums.RequestStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -36,11 +37,6 @@ public class CertificateRequest {
     @Column(name = "type")
     private CertificateType certificateType;
 
-    @ManyToMany
-    @JoinTable(
-            name = "certificate_requests_key_usages",
-            joinColumns = @JoinColumn(name = "certificate_request_id"),
-            inverseJoinColumns = @JoinColumn(name = "key_usages_id")
-    )
-    private List<KeyUsages> keyUsages;
+    @ElementCollection
+    private List<KeyUsageEnum> keyUsages;
 }
