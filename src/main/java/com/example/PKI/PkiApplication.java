@@ -18,10 +18,10 @@ public class PkiApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(PkiApplication.class, args);
-//
-//		KeyStoreRepository repository=new KeyStoreRepository();
-//		repository.createKeystore();
-//		repository.writeRootCACertificate("root");
+
+		KeyStoreRepository repository=new KeyStoreRepository();
+		repository.createKeystore();
+		repository.writeRootCACertificate("root");
 
 //		KeyStoreRepository repository=new KeyStoreRepository();
 //        repository.createKeystore();

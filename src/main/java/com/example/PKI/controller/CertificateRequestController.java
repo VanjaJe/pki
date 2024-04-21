@@ -2,6 +2,9 @@ package com.example.PKI.controller;
 import com.example.PKI.domain.CertificateRequest;
 import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.dto.CertificateRequestDTO;
+import com.example.PKI.exception.CertificateEndEntityException;
+import com.example.PKI.exception.CertificateRevokedException;
+import com.example.PKI.exception.ExtensionsCheckFailedException;
 import com.example.PKI.mapper.CertificateRequestDTOMapper;
 import com.example.PKI.service.CertificateRequestService;
 import jakarta.validation.Valid;
@@ -53,13 +56,18 @@ public class CertificateRequestController {
         if(certificateForUpdate==null){
             return new ResponseEntity<CertificateRequestDTO>(HttpStatus.BAD_REQUEST);
         }else {
-            CertificateRequest newCertificateRequest = CertificateRequestDTOMapper.fromDTOtoCertificateRequest(certificateRequest);
-            CertificateRequest savedRequest = certificateRequestService.updateRequest(certificateForUpdate, newCertificateRequest);
-            if (savedRequest==null) {
-                return new ResponseEntity<CertificateRequestDTO>(HttpStatus.BAD_REQUEST);
+            try{
+                CertificateRequest newCertificateRequest = CertificateRequestDTOMapper.fromDTOtoCertificateRequest(certificateRequest);
+                CertificateRequest savedRequest = certificateRequestService.updateRequest(certificateForUpdate, newCertificateRequest);
+                return new ResponseEntity<CertificateRequestDTO>(CertificateRequestDTOMapper.fromCertificateRequestToDTO(savedRequest), HttpStatus.CREATED);
+            }catch (ExtensionsCheckFailedException e) {
+                return new ResponseEntity<CertificateRequestDTO>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }catch (CertificateRevokedException e) {
+                return new ResponseEntity<CertificateRequestDTO>(HttpStatus.NOT_FOUND);
+            }catch (CertificateEndEntityException e) {
+                return new ResponseEntity<CertificateRequestDTO>(HttpStatus.FORBIDDEN);
             }
 
-            return new ResponseEntity<CertificateRequestDTO>(CertificateRequestDTOMapper.fromCertificateRequestToDTO(savedRequest), HttpStatus.CREATED);
         }
 
     }
