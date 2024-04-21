@@ -20,7 +20,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(origins = "https://localhost:4200")
 @RequestMapping("/api/certificateRequest")
 public class CertificateRequestController {
 
