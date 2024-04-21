@@ -3,17 +3,24 @@ package com.example.PKI.service;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.domain.enums.KeyUsageEnum;
 import com.example.PKI.dto.CertificateDTO;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.repository.KeyRepository;
 import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateService;
+import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1OctetString;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.KeyUsage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -59,6 +66,9 @@ public class CertificateService implements ICertificateService {
         String issuerDN = certificate.getIssuerX500Principal().getName();
         String subjectDN = certificate.getSubjectX500Principal().getName();
         CertificateDTO certificateDTO=new CertificateDTO();
+        
+        List<KeyUsageEnum>keyUsages=getKeyUsages(certificate);
+        certificateDTO.setKeyUsages(keyUsages);
 
         String serialNumber = String.valueOf(certificate.getSerialNumber());
         Date startDate = certificate.getNotBefore();
@@ -91,6 +101,50 @@ public class CertificateService implements ICertificateService {
             certificateDTO.setCertificateType(CertificateType.END_ENTITY);
         }//samo za sad, nije lepo upisano inace samo prvi if
         return certificateDTO;
+    }
+
+    private List<KeyUsageEnum> getKeyUsages(X509Certificate certificate) {
+        byte[] extensionValue = certificate.getExtensionValue(Extension.keyUsage.getId());
+        List<KeyUsageEnum> keyUsages = new ArrayList<>();
+        if (extensionValue != null) {
+            try{
+                ASN1OctetString octetString = (ASN1OctetString) ASN1Primitive.fromByteArray(extensionValue);
+                KeyUsage keyUsageExtension = KeyUsage.getInstance(octetString.getOctets());
+
+                int keyUsageBits = keyUsageExtension.getBytes()[0];
+
+                if ((keyUsageBits & KeyUsage.digitalSignature) != 0) {
+                    keyUsages.add(KeyUsageEnum.DIGITAL_SIGNATURE);
+                }
+                if ((keyUsageBits & KeyUsage.nonRepudiation) != 0) {
+                    keyUsages.add(KeyUsageEnum.NON_REPUDIATION);
+                }
+                if ((keyUsageBits & KeyUsage.keyEncipherment) != 0) {
+                    keyUsages.add(KeyUsageEnum.KEY_ENCIPHERMENT);
+                }
+                if ((keyUsageBits & KeyUsage.dataEncipherment) != 0) {
+                    keyUsages.add(KeyUsageEnum.DATA_ENCIPHERMENT);
+                }
+                if ((keyUsageBits & KeyUsage.keyAgreement) != 0) {
+                    keyUsages.add(KeyUsageEnum.KEY_AGREEMENT);
+                }
+                if ((keyUsageBits & KeyUsage.cRLSign) != 0) {
+                    keyUsages.add(KeyUsageEnum.CRL_SIGNING);
+                }
+                if ((keyUsageBits & KeyUsage.keyCertSign) != 0) {
+                    keyUsages.add(KeyUsageEnum.CERTIFICATE_SIGNING);
+                }
+                if ((keyUsageBits & KeyUsage.encipherOnly) != 0) {
+                    keyUsages.add(KeyUsageEnum.ENCRYPT_ONLY);
+                }
+
+            } catch (Exception e) {
+                // Handle exception
+                e.printStackTrace();
+            }
+        }
+        return keyUsages;
+
     }
 
     @Override
