@@ -51,10 +51,14 @@ public class CertificateRequestController {
     public ResponseEntity<CertificateRequestDTO> updateCertificateRequest(@RequestBody CertificateRequestDTO certificateRequest) throws Exception {
         CertificateRequest certificateForUpdate = certificateRequestService.findOne(certificateRequest.getId());
         if(certificateForUpdate==null){
-            return ResponseEntity.badRequest().build();
+            return new ResponseEntity<CertificateRequestDTO>(HttpStatus.BAD_REQUEST);
         }else {
             CertificateRequest newCertificateRequest = CertificateRequestDTOMapper.fromDTOtoCertificateRequest(certificateRequest);
             CertificateRequest savedRequest = certificateRequestService.updateRequest(certificateForUpdate, newCertificateRequest);
+            if (savedRequest==null) {
+                return new ResponseEntity<CertificateRequestDTO>(HttpStatus.BAD_REQUEST);
+            }
+
             return new ResponseEntity<CertificateRequestDTO>(CertificateRequestDTOMapper.fromCertificateRequestToDTO(savedRequest), HttpStatus.CREATED);
         }
 

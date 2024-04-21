@@ -67,13 +67,21 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             Issuer issuer;
             if (findAliasCertificate==null){
                 issuer = generateIssuer("root");
+
+                if (!isExpired("")) {
+                    return null;
+                }
             }else{
                 issuer = generateIssuer(findAliasCertificate.getAlias());
+                if (!isExpired(request.getIssuerSerialNumber())) {
+                    return null;
+                }
             }
 
-//            if (!isExpired(request.getIssuerSerialNumber())) {
-//                return null;
-//            }
+            if (isRevoked(request.getIssuerSerialNumber())) {
+                return null;
+            }
+
             System.out.printf("nije istekaaaooaoaoa");
             ContentSigner contentSigner = builder.build(issuer.getPrivateKey());
 
@@ -263,6 +271,10 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
     public boolean isExpired(String serialNumber) {
         String alias = generateAlias(serialNumber);
 
+        if (serialNumber.isEmpty()) {
+            alias = "root";
+        }
+
         CertificateService sc = new CertificateService();
         CertificateDTO issuer = sc.getCertificateFromKeyStore(alias);
 
@@ -272,12 +284,20 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             return false;
         }
         else {
-            CertificateDTO parent = sc.getCertificateFromKeyStore(issuer.getIssuerSerialNumber());
-            if (parent == null) {
-                return false;
+            String aliasParent;
+            if (issuer.getSerialNumber().equals(issuer.getIssuerSerialNumber())) {
+                return true;
             }
+            Certificate cert2 = certificateRepository.findBySerialNumber(serialNumber);
+            if (cert2== null) {
+                aliasParent = "root";
+            }
+            else {
+                aliasParent = cert2.getAlias();
+            }
+            CertificateDTO parent = sc.getCertificateFromKeyStore(aliasParent);
+
             if (!parent.getSerialNumber().equals(issuer.getSerialNumber())) {
-                System.out.printf("usao nekad i ovde");
                 isExpired(parent.getSerialNumber());
             }
         }
@@ -289,16 +309,23 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 
         Certificate issuer = certificateRepository.findByAlias(alias);
 
-        if (issuer.isRevoked()) {
+        if ( issuer==null ) {
             return false;
         }
+
+        if (issuer.isRevoked()) {
+            return true;
+        }
         else {
-            Certificate parent = certificateRepository.findByAlias(alias);
+            String parentAlias = generateAlias(issuer.getSerialNumber());
+            Certificate parent = certificateRepository.findByAlias(parentAlias);
+            if (parent==null) {
+                return false;
+            }
             if (!parent.getSerialNumber().equals(issuer.getSerialNumber())) {
-                System.out.printf("usao nekad i ovde");
                 isRevoked(parent.getSerialNumber());
             }
         }
-        return true;
+        return false;
     }
 }

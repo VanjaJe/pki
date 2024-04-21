@@ -215,28 +215,35 @@ public class CertificateService implements ICertificateService {
         KeyStoreRepository ks = new KeyStoreRepository();
         java.security.cert.Certificate certificateSecurity = ks.readCertificate(alias);
         X509Certificate x509Cert = (X509Certificate) certificateSecurity;
-
         return convertToCetificateDTO(x509Cert);
     }
 
     @Override
-    public CertificateDTO invokeCertificate(String alias, String reason) {
-        Certificate certificate = certificateRepository.findByAlias(alias);
+    public CertificateDTO revokeCertificate(String serialNumber, String reason) {
+        Certificate certificate = certificateRepository.findBySerialNumber(serialNumber);
         certificate.setRevoked(true);
         certificate.setRevokeReason(reason);
         Collection<Certificate> children = certificateRepository.findAllByIssuerSerialNumber(certificate.getSerialNumber());
 
-        invokeChildren(children);
+        revokeChildren(children);
 
+        certificateRepository.save(certificate);
         return null;
     }
 
-    public void invokeChildren(Collection<Certificate> children) {
+    @Override
+    public Certificate findBySerialNumber(String serialNumber) {
+        return certificateRepository.findBySerialNumber(serialNumber);
+    }
+
+    public void revokeChildren(Collection<Certificate> children) {
+        System.out.println("REVOOOKEEE");
         for (Certificate child : children) {
             child.setRevoked(true);
+            child.setRevokeReason("Issuer is revoked.");
             Collection<Certificate> children2 = certificateRepository.findAllByIssuerSerialNumber(child.getSerialNumber());
-
-            invokeChildren(children2);
+            certificateRepository.save(child);
+            revokeChildren(children2);
         }
     }
 }

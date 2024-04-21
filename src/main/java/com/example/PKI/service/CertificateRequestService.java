@@ -1,5 +1,6 @@
 package com.example.PKI.service;
 
+import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.CertificateRequest;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.repository.CertificateRequestRepository;
@@ -17,6 +18,9 @@ public class CertificateRequestService implements ICertificateRequestService {
 
     @Autowired
     CertificateGeneratorService certificateGeneratorService;
+
+    @Autowired
+    CertificateRepository certificateRepository;
 
     @Override
     public CertificateRequest createRequest(CertificateRequest request) {
@@ -45,6 +49,11 @@ public class CertificateRequestService implements ICertificateRequestService {
 
     @Override
     public CertificateRequest updateRequest(CertificateRequest certificateForUpdate, CertificateRequest newCertificateRequest) {
+        Certificate issuer = certificateRepository.findBySerialNumber(newCertificateRequest.getIssuerSerialNumber());
+
+        if (issuer != null && certificateGeneratorService.isRevoked(issuer.getSerialNumber())) {
+            return null;
+        }
 
         certificateForUpdate.setSubject(newCertificateRequest.getSubject());
         certificateForUpdate.setIssuerSerialNumber(newCertificateRequest.getIssuerSerialNumber());
@@ -52,7 +61,6 @@ public class CertificateRequestService implements ICertificateRequestService {
         certificateForUpdate.setRequestStatus(newCertificateRequest.getRequestStatus());
         certificateForUpdate.setCertificateType(newCertificateRequest.getCertificateType());
         certificateForUpdate.setKeyUsages(newCertificateRequest.getKeyUsages());
-
 
         CertificateRequest request=certificateRequestRepository.save(certificateForUpdate);
 

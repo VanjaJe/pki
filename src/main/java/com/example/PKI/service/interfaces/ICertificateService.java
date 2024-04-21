@@ -27,6 +27,8 @@ public interface ICertificateService {
     public CertificateDTO getCertificateFromKeyStore(String alias);
 //    public CertificateDTO invokeCertificate(String alias);
 
-    CertificateDTO invokeCertificate(String alias, String reason);
+    CertificateDTO revokeCertificate(String alias, String reason);
+
+    Certificate findBySerialNumber(String serialNumber);
 
 }

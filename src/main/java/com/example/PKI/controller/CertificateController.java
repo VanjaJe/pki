@@ -33,6 +33,17 @@ public class CertificateController {
         return new ResponseEntity<>(certificates, HttpStatus.OK);
     }
 
+    @PutMapping("/revokeCertificate")
+    public ResponseEntity<String> revokeCertificate(@RequestBody Certificate certificate) {
+        Certificate certificateToDelete = certificateService.findBySerialNumber(certificate.getSerialNumber());
+        if (certificateToDelete != null) {
+            certificateService.revokeCertificate(certificate.getSerialNumber(), certificate.getRevokeReason());
+            return new ResponseEntity<>("OK", HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
+        }
+    }
+
     @DeleteMapping("/delete/{serialNumber}")
     public ResponseEntity<String> deleteResource(@PathVariable String serialNumber) {
         Certificate certificateToDelete = certificateRepository.findBySerialNumber(serialNumber);
@@ -43,5 +54,4 @@ public class CertificateController {
             return new ResponseEntity<>("Failed", HttpStatus.BAD_REQUEST);
         }
     }
-
 }

@@ -23,6 +23,10 @@ public class PkiApplication {
 //		repository.createKeystore();
 //		repository.writeRootCACertificate("root");
 
+//		KeyStoreRepository repository=new KeyStoreRepository();
+//        repository.createKeystore();
+//        repository.writeRootCACertificate("root");
+
 	}
 
 }
