@@ -44,6 +44,9 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
 
     @Autowired
     CertificateRequestRepository certificateRequestRepository;
+
+    @Autowired
+    CertificateService certificateService;
     private final KeyRepository keyRepository;
     private final KeyStoreRepository keyStoreRepository;
 
@@ -114,6 +117,9 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             keyStoreRepository.writeCertificate(alias,certificate);
             saveToDatabase(certificate,request,alias);
 
+//           certificateService.downloadCertificate(alias);
+//           ako saljemo na bek
+
             return certificate;
 
         } catch (CertificateEncodingException e) {
@@ -172,7 +178,6 @@ public class CertificateGeneratorService implements ICertificateGeneratorService
             issuerCertificate = (X509Certificate) keyStoreRepository.readCertificate("root");
 
         }
-
         Certificate certificate = new Certificate();
         certificate.setCertificateType(request.getCertificateType());
         certificate.setAlias(alias);
