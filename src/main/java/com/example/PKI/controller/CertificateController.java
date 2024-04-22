@@ -5,6 +5,8 @@ import com.example.PKI.domain.Certificate;
 import com.example.PKI.domain.TreeNode;
 import com.example.PKI.domain.User;
 import com.example.PKI.domain.enums.CertificateType;
+import com.example.PKI.dto.CertificateDTO;
+import com.example.PKI.mapper.CertificateDTOMapper;
 import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.service.interfaces.ICertificateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
+import java.util.List;
 
 
 @RestController
@@ -31,6 +34,14 @@ public class CertificateController {
     public ResponseEntity<TreeNode> getAll () {
         TreeNode certificates=certificateService.getAll();
         return new ResponseEntity<>(certificates, HttpStatus.OK);
+    }
+    @GetMapping("/{userId}")
+    public ResponseEntity<CertificateDTO> getCertificate (@PathVariable Long userId) {
+        CertificateDTO certificateDTO=certificateService.getCertificateForUser(userId);
+        if(certificateDTO==null){
+            return new ResponseEntity<>( HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(certificateDTO, HttpStatus.OK);
     }
 
     @PutMapping("/revokeCertificate")

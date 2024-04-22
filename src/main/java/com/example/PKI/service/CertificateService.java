@@ -9,7 +9,6 @@ import com.example.PKI.repository.CertificateRepository;
 import com.example.PKI.repository.KeyRepository;
 import com.example.PKI.repository.KeyStoreRepository;
 import com.example.PKI.service.interfaces.ICertificateService;
-import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.x500.RDN;
@@ -18,9 +17,15 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
-import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.util.*;
 
@@ -35,6 +40,9 @@ public class CertificateService implements ICertificateService {
 
     @Autowired
     KeyRepository keyRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     @Override
     public TreeNode getAll() {
@@ -244,6 +252,50 @@ public class CertificateService implements ICertificateService {
             certificateRepository.save(child);
             revokeChildren(children2);
         }
+    }
+    @Override
+    public void downloadCertificate(String alias){
+        java.security.cert.Certificate cert = keyStoreRepository.readCertificate(alias);
+        if(cert != null) {
+            try {
+                ByteArrayResource resource = new ByteArrayResource(cert.getEncoded());
+                sendCertificate(resource);
+            } catch (CertificateEncodingException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+    @Override
+    public ByteArrayResource sendCertificate(ByteArrayResource byteCertificate){
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+
+        HttpEntity<ByteArrayResource> requestEntity = new HttpEntity<>(byteCertificate, headers);
+
+        ResponseEntity<Void> response = restTemplate.postForEntity(
+                "http://localhost:8080/api/certificate/download-certificate",
+                requestEntity,
+                Void.class
+        );
+
+        if (response.getStatusCode().is2xxSuccessful()) {
+            // Success
+        } else {
+            // Handle error
+        }
+        return null;
+    }
+
+    @Override
+    public CertificateDTO getCertificateForUser(Long userId) {
+        List<Certificate>certificates= certificateRepository.findBySubjectId(userId);
+        if(!certificates.isEmpty()){
+            Certificate certificate=certificates.get(0);
+            return getCertificateFromKeyStore(certificate.getAlias());
+        }
+        return null;
+
     }
 }
 
